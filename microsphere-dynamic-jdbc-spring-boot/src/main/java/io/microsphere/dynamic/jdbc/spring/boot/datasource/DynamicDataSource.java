@@ -152,7 +152,7 @@ public class DynamicDataSource implements DataSource, InitializingBean, Disposab
         return dataSource;
     }
 
-    private DataSource initializeDataSource() {
+    DataSource initializeDataSource() {
         return initializeDataSource(dynamicJdbcConfig, dynamicJdbcConfigPropertyName, context);
     }
 
@@ -171,16 +171,11 @@ public class DynamicDataSource implements DataSource, InitializingBean, Disposab
         }
     }
 
-    private DataSource initializeDataSource(DynamicJdbcConfig dynamicJdbcConfig,
-                                            String dynamicJdbcConfigPropertyName, ConfigurableApplicationContext context) {
+    DataSource initializeDataSource(DynamicJdbcConfig dynamicJdbcConfig, String dynamicJdbcConfigPropertyName, ConfigurableApplicationContext context) {
         DataSource latestDataSource = null;
         DynamicJdbcConfig dynamicDataSourceConfig = createDynamicDataSourceConfig(dynamicJdbcConfig);
-        DynamicJdbcChildContext dynamicDataSourceChildContext = new DynamicJdbcChildContext(
-                dynamicDataSourceConfig, dynamicJdbcConfigPropertyName, context, idGenerator);
-        // Merge Parent Environment
-        dynamicDataSourceChildContext.mergeParentEnvironment();
-        // Refresh Context
-        dynamicDataSourceChildContext.refresh();
+
+        DynamicJdbcChildContext dynamicDataSourceChildContext = getDynamicJdbcChildContext(dynamicJdbcConfigPropertyName, context, dynamicDataSourceConfig);
         // Get the DataSource Bean from Child Context
         latestDataSource = getDataSource(dynamicDataSourceChildContext);
         synchronized (mutex) {
@@ -198,6 +193,16 @@ public class DynamicDataSource implements DataSource, InitializingBean, Disposab
         }
 
         return latestDataSource;
+    }
+
+    static DynamicJdbcChildContext getDynamicJdbcChildContext(String dynamicJdbcConfigPropertyName, ConfigurableApplicationContext context, DynamicJdbcConfig dynamicDataSourceConfig) {
+        DynamicJdbcChildContext dynamicDataSourceChildContext = new DynamicJdbcChildContext(
+                dynamicDataSourceConfig, dynamicJdbcConfigPropertyName, context, idGenerator);
+        // Merge Parent Environment
+        dynamicDataSourceChildContext.mergeParentEnvironment();
+        // Refresh Context
+        dynamicDataSourceChildContext.refresh();
+        return dynamicDataSourceChildContext;
     }
 
     private DataSource getDataSource(ApplicationContext childContext) {
