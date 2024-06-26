@@ -14,10 +14,10 @@ import java.io.PrintWriter;
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
 import java.util.Arrays;
+import java.util.List;
 
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -28,11 +28,11 @@ import static org.mockito.Mockito.when;
 class DynamicDataSourceTest {
 
     @Nested
-    class DelegateTest {
+    class DelegateDataSourceTest {
 
         @TestFactory
         @DisplayName("should call actual method when call DataSource method")
-        Iterable<DynamicTest> shouldCallActualMethodWhenCallDataSourceMethod() {
+        List<DynamicTest> shouldCallActualMethodWhenCallDataSourceMethod() {
             DataSource actual = mock(DataSource.class);
             DynamicDataSource dataSource = spyDynamicDataSource();
             doReturn(actual).when(dataSource).getDelegate();
