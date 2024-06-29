@@ -11,7 +11,9 @@ import org.springframework.mock.env.MockEnvironment;
 
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static io.microsphere.dynamic.jdbc.spring.boot.constants.DynamicJdbcConstants.DYNAMIC_JDBC_CONFIGS_PROPERTY_NAME_PREFIX;
@@ -19,21 +21,25 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class DynamicJdbcConfigTest {
     String dynamicJdbcConfigValue;
+    private MockEnvironment mockEnvironment;
+    String propertyName;
 
     @BeforeEach
     void setup() throws Exception {
         URL resource = DynamicJdbcConfigTest.class.getClassLoader().getResource("dynamic/jdbc/test-dynamic-jdbc.json");
         dynamicJdbcConfigValue = IOUtils.toString(resource, StandardCharsets.UTF_8);
+        mockEnvironment = new MockEnvironment();
+        propertyName = DYNAMIC_JDBC_CONFIGS_PROPERTY_NAME_PREFIX + ".test";
     }
 
     @Test
     @DisplayName("should read DynamicJdbcConfig from ConfigurableEnvironment")
     void shouldReadDynamicJdbcConfigFromConfigurableEnvironment() {
-        MockEnvironment mockEnvironment = new MockEnvironment();
-        String propertyName = DYNAMIC_JDBC_CONFIGS_PROPERTY_NAME_PREFIX + ".test";
         mockEnvironment.setProperty(propertyName, dynamicJdbcConfigValue);
         DynamicJdbcConfig dynamicJdbcConfig = DynamicJdbcConfigUtils.getDynamicJdbcConfig(mockEnvironment, propertyName);
         assertDynamicJdbcConfig(dynamicJdbcConfig);
@@ -42,8 +48,6 @@ class DynamicJdbcConfigTest {
     @Test
     @DisplayName("should read DynamicJdbcConfig from ConfigurableEnvironment by classpath")
     void shouldReadDynamicJdbcConfigFromConfigurableEnvironmentByClasspath() {
-        MockEnvironment mockEnvironment = new MockEnvironment();
-        String propertyName = DYNAMIC_JDBC_CONFIGS_PROPERTY_NAME_PREFIX + ".test";
         String dynamicJdbcConfigClasspath = "classpath:dynamic/jdbc/test-dynamic-jdbc.json";
         mockEnvironment.setProperty(propertyName, dynamicJdbcConfigClasspath);
         DynamicJdbcConfig dynamicJdbcConfig = DynamicJdbcConfigUtils.getDynamicJdbcConfig(mockEnvironment, propertyName);
@@ -51,13 +55,32 @@ class DynamicJdbcConfigTest {
     }
 
     @Test
-    @DisplayName("should not throw exception when property not in ConfigurableEnvironment")
-    @Disabled
-    void shouldNotThrowExceptionWhenPropertyNotInConfigurableEnvironment() {
-        MockEnvironment mockEnvironment = new MockEnvironment();
-        String propertyName = DYNAMIC_JDBC_CONFIGS_PROPERTY_NAME_PREFIX + ".test";
+    @DisplayName("should not throw exception when property not exist in ConfigurableEnvironment")
+    @Disabled("BUG")
+    void shouldNotThrowExceptionWhenPropertyNotExistInConfigurableEnvironment() {
         assertDoesNotThrow(() -> DynamicJdbcConfigUtils.getDynamicJdbcConfig(mockEnvironment, propertyName));
 //        assertThrows(IllegalArgumentException.class, () -> DynamicJdbcConfigUtils.getDynamicJdbcConfig(mockEnvironment, propertyName));
+    }
+
+    @Test
+    @DisplayName("should read DynamicJdbcConfigs from ConfigurableEnvironment")
+    void shouldReadDynamicJdbcConfigsFromConfigurableEnvironmentByClasspath() {
+        String propertyName1 = DYNAMIC_JDBC_CONFIGS_PROPERTY_NAME_PREFIX + ".test1";
+        String propertyName2 = DYNAMIC_JDBC_CONFIGS_PROPERTY_NAME_PREFIX + ".test2";
+        mockEnvironment.setProperty(propertyName1, dynamicJdbcConfigValue);
+        mockEnvironment.setProperty(propertyName2, dynamicJdbcConfigValue);
+        Map<String, DynamicJdbcConfig> dynamicJdbcConfigs = DynamicJdbcConfigUtils.getDynamicJdbcConfigs(mockEnvironment);
+        assertEquals(2, dynamicJdbcConfigs.size());
+        assertTrue(dynamicJdbcConfigs.containsKey(propertyName1));
+        assertTrue(dynamicJdbcConfigs.containsKey(propertyName2));
+    }
+
+    @Test
+    @DisplayName("should return empty Map when property not exist in ConfigurableEnvironment")
+    void shouldReturnEmptyMapWhenPropertyNotExistInConfigurableEnvironment() {
+        Map<String, DynamicJdbcConfig> dynamicJdbcConfigs = DynamicJdbcConfigUtils.getDynamicJdbcConfigs(mockEnvironment);
+        assertEquals(0, dynamicJdbcConfigs.size());
+        assertSame(Collections.emptyMap(), dynamicJdbcConfigs);
     }
 
 
