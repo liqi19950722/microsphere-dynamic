@@ -12,7 +12,6 @@ import org.junit.jupiter.api.TestFactory;
 import org.mockito.MockedStatic;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.env.ConfigurableEnvironment;
-import org.springframework.mock.env.MockEnvironment;
 
 import javax.sql.DataSource;
 import java.io.PrintWriter;
@@ -168,7 +167,8 @@ class DynamicDataSourceTest {
         }
 
         @Test
-        void should_initialize_a_data_source_when_call_initializeDataSource() {
+        @DisplayName("should initialize a datasource when call initializeDataSource")
+        void shouldInitializeADataSourceWhenCallInitializeDataSource() {
 
             try (MockedStatic<DynamicDataSource> dynamicDataSourceMockedStatic = mockStatic(DynamicDataSource.class)) {
                 dynamicDataSourceMockedStatic
@@ -188,7 +188,8 @@ class DynamicDataSourceTest {
         }
 
         @Test
-        void should_initialize_another_data_source_when_call_initializeDataSource_twice() {
+        @DisplayName("should initialize another datasource when call initializeDataSource twice")
+        void shouldInitializeAnotherDataSourceWhenCallInitializeDataSourceTwice() {
 
             try (MockedStatic<DynamicDataSource> dynamicDataSourceMockedStatic = mockStatic(DynamicDataSource.class)) {
                 dynamicDataSourceMockedStatic
@@ -211,9 +212,11 @@ class DynamicDataSourceTest {
             } catch (SQLException e) {
                 throw new RuntimeException(e);
             }
-
         }
+    }
 
+    @Nested
+    class DynamicDataSourceSpringIntegrationTest {
 
     }
 

@@ -1,0 +1,62 @@
+{
+  "name": "dynamic-jdbc",
+  "dynamic": true,
+  "primary": false,
+  "datasource": [
+    {
+      "type": "com.zaxxer.hikari.HikariDataSource",
+      "driverClassName": "com.mysql.cj.jdbc.Driver",
+      "url": "jdbc:mysql://127.0.0.1:3306/demo_ds?serverTimezone=UTC&useSSL=false&useUnicode=true&characterEncoding=UTF-8",
+      "username": "root",
+      "password": "123456"
+    }
+  ],
+  "ha-datasource": {
+    "zone-1": [
+      {
+        "type": "com.zaxxer.hikari.HikariDataSource",
+        "driverClassName": "com.mysql.cj.jdbc.Driver",
+        "url": "jdbc:mysql://127.0.0.1:3306/demo_ds?serverTimezone=UTC&useSSL=false&useUnicode=true&characterEncoding=UTF-8",
+        "username": "root",
+        "password": "123456"
+      }
+    ],
+    "zone-2": [
+      {
+        "type": "com.zaxxer.hikari.HikariDataSource",
+        "driverClassName": "com.mysql.jdbc.Driver",
+        "url": "jdbc:mysql://127.0.0.1:3307/demo_ds?serverTimezone=UTC&useSSL=false&useUnicode=true&characterEncoding=UTF-8",
+        "username": "root",
+        "password": "123456"
+      }
+    ]
+  },
+  "transaction": {
+    "name": "TRANSACTION",
+    "configurations": "",
+    "properties": {
+    },
+    "customizers": ""
+  },
+  "sharding-sphere": {
+    "name": "SHARDINGSPHERE",
+    "configurations": "",
+    "properties": {
+    },
+    "config-resource": ""
+  },
+  "mybatis": {
+    "name": "MYBATIS",
+    "configurations": "",
+    "properties": {
+    },
+    "base-packages": "io.microsphere.dynamic.jdbc.spring.boot.config"
+  },
+  "mybatis-plus": {
+    "name": "MYBATISPLUS",
+    "configurations": "",
+    "properties": {
+    },
+    "base-packages": "io.microsphere.dynamic.jdbc.spring.boot.config"
+  }
+}
