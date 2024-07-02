@@ -1,10 +1,12 @@
 package io.microsphere.dynamic.jdbc.spring.boot.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.microsphere.dynamic.jdbc.spring.boot.config.annotation.Module;
 import io.microsphere.dynamic.jdbc.spring.boot.datasource.config.DataSourcePropertiesConfigPostProcessor;
 import io.microsphere.multiple.active.zone.ZoneContext;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Nested;
@@ -27,8 +29,11 @@ import java.util.Map;
 
 import static io.microsphere.dynamic.jdbc.spring.boot.constants.DynamicJdbcConstants.DYNAMIC_JDBC_CONFIGS_PROPERTY_NAME_PREFIX;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -207,6 +212,7 @@ class ConfigPostProcessorTest {
         }
 
         @Test
+        @DisplayName("should invoke postProcess when support is true")
         void shouldInvokePostProcessWhenSupportIsTrue() {
             doReturn(true).when(moduleConfigPostProcessor)
                     .supports(dynamicJdbcConfig, dynamicJdbcConfigPropertyName, moduleName);
@@ -219,6 +225,7 @@ class ConfigPostProcessorTest {
         }
 
         @Test
+        @DisplayName("should not invoke postProcess when support is false")
         void shouldNotInvokePostProcessWhenSupportIsFalse() {
             doReturn(false).when(moduleConfigPostProcessor)
                     .supports(dynamicJdbcConfig, dynamicJdbcConfigPropertyName, moduleName);
@@ -242,6 +249,122 @@ class ConfigPostProcessorTest {
         @Override
         public String getModule() {
             return "";
+        }
+    }
+
+    @Nested
+    class AbstractConfigurationConfigPostProcessorTest {
+        DynamicJdbcConfig dynamicJdbcConfig;
+        String configName = "test";
+        String moduleName = "transaction";
+
+        @BeforeEach
+        void setup() {
+            dynamicJdbcConfig = new DynamicJdbcConfig();
+            dynamicJdbcConfig.setName(configName);
+            dynamicJdbcConfig.setTransaction(new DynamicJdbcConfig.Transaction());
+        }
+
+        @Test
+        @DisplayName("should process DynamicJdbcConfig when invoke postProcess()")
+        void shouldProcessDynamicJdbcConfigWhenInvokePostProcess() {
+
+            ModuleExistConfigConfigurationConfigPostProcessor abstractConfigurationConfigPostProcessorImpl = new ModuleExistConfigConfigurationConfigPostProcessor();
+
+            assertNull(dynamicJdbcConfig.getTransaction().getCustomizers());
+
+            abstractConfigurationConfigPostProcessorImpl.postProcess(dynamicJdbcConfig, "test", moduleName);
+            assertEquals(configName + "." + moduleName, dynamicJdbcConfig.getTransaction().getName());
+            assertEquals("customizers", dynamicJdbcConfig.getTransaction().getCustomizers());
+        }
+
+        @Test
+        @DisplayName("should return true when getConfiguration is not null")
+        void shouldReturnTrueWhenGetConfigurationIsNotNULL() {
+            ModuleExistConfigConfigurationConfigPostProcessor abstractConfigurationConfigPostProcessorImpl = new ModuleExistConfigConfigurationConfigPostProcessor();
+
+            assertTrue(abstractConfigurationConfigPostProcessorImpl.supports(dynamicJdbcConfig, "test", "transaction"));
+        }
+
+        @Test
+        @DisplayName("should return false when getConfiguration is null")
+        void shouldReturnFalseWhenGetConfigurationIsNULL() {
+            ModuleNotExistConfigConfigurationConfigPostProcessorImpl abstractConfigurationConfigPostProcessorImpl = new ModuleNotExistConfigConfigurationConfigPostProcessorImpl();
+
+            assertFalse(abstractConfigurationConfigPostProcessorImpl.supports(dynamicJdbcConfig, "test", "ModuleNotExistConfig"));
+
+        }
+
+        @Test
+        @Disabled
+        void shouldReturnTrueWhenGetConfigurationIsNotNULLDisabled() {
+            ModuleExistConfigDynamicJdbcConfig dynamicJdbcConfig = new ModuleExistConfigDynamicJdbcConfig();
+            dynamicJdbcConfig.setModuleExistConfig(new ModuleExistConfig());
+            ModuleExistConfigConfigurationConfigPostProcessorImpl abstractConfigurationConfigPostProcessor = new ModuleExistConfigConfigurationConfigPostProcessorImpl();
+
+            assertTrue(abstractConfigurationConfigPostProcessor.supports(dynamicJdbcConfig, "test", "ModuleExistConfig"));
+        }
+
+        @Test
+        @Disabled
+        void shouldReturnFalseWhenGetConfigurationIsNULLDisabled() {
+            ModuleNotExistConfigDynamicJdbcConfig dynamicJdbcConfig = new ModuleNotExistConfigDynamicJdbcConfig();
+            ModuleNotExistConfigConfigurationConfigPostProcessorImpl abstractConfigurationConfigPostProcessor = new ModuleNotExistConfigConfigurationConfigPostProcessorImpl();
+
+            assertFalse(abstractConfigurationConfigPostProcessor.supports(dynamicJdbcConfig, "test", "ModuleNotExistConfig"));
+
+        }
+
+    }
+
+    private static class ModuleExistConfigConfigurationConfigPostProcessor extends AbstractConfigurationConfigPostProcessor<DynamicJdbcConfig.Transaction> {
+
+
+        @Override
+        protected void postProcess(DynamicJdbcConfig dynamicJdbcConfig, String dynamicJdbcConfigPropertyName, String module, DynamicJdbcConfig.Transaction configuration) {
+            DynamicJdbcConfig.Transaction transaction = dynamicJdbcConfig.getTransaction();
+            transaction.setCustomizers("customizers");
+        }
+    }
+
+    class ModuleExistConfigDynamicJdbcConfig extends DynamicJdbcConfig {
+        private ModuleExistConfig moduleExistConfig;
+
+        public ModuleExistConfig getModuleExistConfig() {
+            return moduleExistConfig;
+        }
+
+        public void setModuleExistConfig(ModuleExistConfig moduleExistConfig) {
+            this.moduleExistConfig = moduleExistConfig;
+        }
+    }
+
+    @Module("ModuleExistConfig")
+    class ModuleExistConfig extends DynamicJdbcConfig.Config {
+
+    }
+
+    private static class ModuleExistConfigConfigurationConfigPostProcessorImpl extends AbstractConfigurationConfigPostProcessor<ModuleExistConfig> {
+
+        @Override
+        protected void postProcess(DynamicJdbcConfig dynamicJdbcConfig, String dynamicJdbcConfigPropertyName, String module, ModuleExistConfig configuration) {
+
+        }
+    }
+
+    class ModuleNotExistConfigDynamicJdbcConfig extends DynamicJdbcConfig {
+    }
+
+    @Module("ModuleNotExistConfig")
+    class ModuleNotExistConfig extends DynamicJdbcConfig.Config {
+
+    }
+
+    private static class ModuleNotExistConfigConfigurationConfigPostProcessorImpl extends AbstractConfigurationConfigPostProcessor<ModuleNotExistConfig> {
+
+        @Override
+        protected void postProcess(DynamicJdbcConfig dynamicJdbcConfig, String dynamicJdbcConfigPropertyName, String module, ModuleNotExistConfig configuration) {
+
         }
     }
 }
