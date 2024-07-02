@@ -1,8 +1,6 @@
-package io.microsphere.dynamic.jdbc.spring.boot.context;
+package io.microsphere.dynamic.jdbc.spring.boot.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.microsphere.dynamic.jdbc.spring.boot.config.AbstractConfigPostProcessor;
-import io.microsphere.dynamic.jdbc.spring.boot.config.DynamicJdbcConfig;
 import io.microsphere.dynamic.jdbc.spring.boot.datasource.config.DataSourcePropertiesConfigPostProcessor;
 import io.microsphere.multiple.active.zone.ZoneContext;
 import org.apache.commons.io.IOUtils;
@@ -26,6 +24,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static io.microsphere.dynamic.jdbc.spring.boot.constants.DynamicJdbcConstants.DYNAMIC_JDBC_CONFIGS_PROPERTY_NAME_PREFIX;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -78,6 +77,23 @@ class ConfigPostProcessorTest {
             return super.classLoader;
         }
 
+    }
+
+    @Nested
+    class DynamicJdbcConfigPostProcessorTest {
+        DynamicJdbcConfigPostProcessor dynamicJdbcConfigPostProcessor = new DynamicJdbcConfigPostProcessor();
+
+
+        @Test
+        @DisplayName("should set property name when config file don't set name")
+        void shouldSetPropertyNameWhenConfigFileDoNotSetName() throws Exception {
+            URL resource = this.getClass().getClassLoader().getResource("dynamic/jdbc/test-jdbc-config-without-name.json");
+            String content = IOUtils.toString(resource, StandardCharsets.UTF_8);
+            DynamicJdbcConfig dynamicJdbcConfig = new ObjectMapper().readValue(content, DynamicJdbcConfig.class);
+            String dynamicJdbcConfigPropertyName = DYNAMIC_JDBC_CONFIGS_PROPERTY_NAME_PREFIX + ".test";
+            dynamicJdbcConfigPostProcessor.postProcess(dynamicJdbcConfig, dynamicJdbcConfigPropertyName);
+            assertEquals("test", dynamicJdbcConfig.getName());
+        }
     }
 
     @Nested
