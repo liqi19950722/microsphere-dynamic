@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.microsphere.dynamic.jdbc.spring.boot.datasource.config.DataSourcePropertiesConfigPostProcessor;
 import io.microsphere.multiple.active.zone.ZoneContext;
 import org.apache.commons.io.IOUtils;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Nested;
@@ -28,7 +29,10 @@ import static io.microsphere.dynamic.jdbc.spring.boot.constants.DynamicJdbcConst
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 class ConfigPostProcessorTest {
 
@@ -181,6 +185,63 @@ class ConfigPostProcessorTest {
             assertEquals("root-1", third.get("username"));
             assertEquals("1234567", third.get("password"));
             assertEquals("ds_1", third.get("name"));
+        }
+    }
+
+    @Nested
+    class AbstractModuleConfigPostProcessorTest {
+        AbstractModuleConfigPostProcessorImpl moduleConfigPostProcessor;
+        String dynamicJdbcConfigPropertyName;
+        String moduleName;
+        DynamicJdbcConfig dynamicJdbcConfig;
+
+        @BeforeEach
+        void setUp() {
+            dynamicJdbcConfigPropertyName = "dynamicJdbcConfigPropertyName";
+            moduleName = "testModule";
+            dynamicJdbcConfig = mock(DynamicJdbcConfig.class);
+            when(dynamicJdbcConfig.getName()).thenReturn("noProcessed");
+
+            moduleConfigPostProcessor = spy(new AbstractModuleConfigPostProcessorImpl());
+            doReturn(moduleName).when(moduleConfigPostProcessor).getModule();
+        }
+
+        @Test
+        void shouldInvokePostProcessWhenSupportIsTrue() {
+            doReturn(true).when(moduleConfigPostProcessor)
+                    .supports(dynamicJdbcConfig, dynamicJdbcConfigPropertyName, moduleName);
+
+            moduleConfigPostProcessor.postProcess(dynamicJdbcConfig, dynamicJdbcConfigPropertyName);
+
+            assertEquals("postProcessed", dynamicJdbcConfig.getName());
+            // verify(moduleConfigPostProcessor, times(1)).postProcess(dynamicJdbcConfig, dynamicJdbcConfigPropertyName, moduleName);
+
+        }
+
+        @Test
+        void shouldNotInvokePostProcessWhenSupportIsFalse() {
+            doReturn(false).when(moduleConfigPostProcessor)
+                    .supports(dynamicJdbcConfig, dynamicJdbcConfigPropertyName, moduleName);
+
+            moduleConfigPostProcessor.postProcess(dynamicJdbcConfig, dynamicJdbcConfigPropertyName);
+
+            assertEquals("noProcessed", dynamicJdbcConfig.getName());
+            // verify(moduleConfigPostProcessor, never()).postProcess(dynamicJdbcConfig, dynamicJdbcConfigPropertyName, moduleName);
+        }
+
+    }
+
+    private static class AbstractModuleConfigPostProcessorImpl extends AbstractModuleConfigPostProcessor {
+
+        @Override
+        protected void postProcess(DynamicJdbcConfig dynamicJdbcConfig, String dynamicJdbcConfigPropertyName, String module) {
+            when(dynamicJdbcConfig.getName()).thenReturn("postProcessed");
+        }
+
+
+        @Override
+        public String getModule() {
+            return "";
         }
     }
 }
