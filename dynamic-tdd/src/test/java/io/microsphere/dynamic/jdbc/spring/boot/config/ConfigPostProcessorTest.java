@@ -322,8 +322,7 @@ class ConfigPostProcessorTest {
 
         @Override
         protected void postProcess(DynamicJdbcConfig dynamicJdbcConfig, String dynamicJdbcConfigPropertyName, String module, DynamicJdbcConfig.Transaction configuration) {
-            DynamicJdbcConfig.Transaction transaction = dynamicJdbcConfig.getTransaction();
-            transaction.setCustomizers("customizers");
+            configuration.setCustomizers("customizers");
         }
     }
 
