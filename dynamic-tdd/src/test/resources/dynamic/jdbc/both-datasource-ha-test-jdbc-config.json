@@ -1,0 +1,61 @@
+{
+  "name": "dynamic-jdbc-config",
+  "dynamic": true,
+  "primary": false,
+  "datasource": [
+    {
+      "name": "ds",
+      "type": "com.zaxxer.hikari.HikariDataSource",
+      "driverClassName": "com.mysql.cj.jdbc.Driver",
+      "url": "jdbc:mysql://127.0.0.1:3306/demo_ds?serverTimezone=UTC&useSSL=false&useUnicode=true&characterEncoding=UTF-8",
+      "username": "root",
+      "password": "123456"
+    }
+  ],
+  "ha-datasource": {
+    "defaultZone": [
+      {
+        "name": "ds",
+        "type": "com.zaxxer.hikari.HikariDataSource",
+        "driverClassName": "com.mysql.cj.jdbc.Driver",
+        "url": "jdbc:mysql://127.0.0.1:3306/demo_ds?serverTimezone=UTC&useSSL=false&useUnicode=true&characterEncoding=UTF-8",
+        "username": "root",
+        "password": "123456"
+      },
+      {
+        "name": "ds_1",
+        "type": "com.zaxxer.hikari.HikariDataSource",
+        "driverClassName": "com.mysql.cj.jdbc.Driver",
+        "url": "jdbc:mysql://127.0.0.1:3306/demo_ds?serverTimezone=UTC&useSSL=false&useUnicode=true&characterEncoding=UTF-8",
+        "username": "root",
+        "password": "123456"
+      },
+      {
+        "name": "ds_2",
+        "type": "com.zaxxer.hikari.HikariDataSource",
+        "driverClassName": "com.mysql.cj.jdbc.Driver",
+        "url": "jdbc:mysql://127.0.0.1:3306/demo_ds?serverTimezone=UTC&useSSL=false&useUnicode=true&characterEncoding=UTF-8",
+        "username": "root",
+        "password": "123456"
+      }
+    ],
+    "zone-1": [
+      {
+        "name": "ds-1",
+        "type": "com.zaxxer.hikari.HikariDataSource",
+        "driverClassName": "com.mysql.cj.jdbc.Driver",
+        "url": "jdbc:mysql://127.0.0.1:3306/demo_ds?serverTimezone=UTC&useSSL=false&useUnicode=true&characterEncoding=UTF-8",
+        "username": "root",
+        "password": "123456"
+      },
+      {
+        "name": "ds-2",
+        "type": "com.zaxxer.hikari.HikariDataSource",
+        "driverClassName": "com.mysql.cj.jdbc.Driver",
+        "url": "jdbc:mysql://127.0.0.1:3306/demo_ds?serverTimezone=UTC&useSSL=false&useUnicode=true&characterEncoding=UTF-8",
+        "username": "root",
+        "password": "123456"
+      }
+    ]
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "name": "dynamic-jdbc-config",
+  "dynamic": true,
+  "primary": false,
+  "datasource": [
+  ],
+  "ha-datasource": {
+  }
+}
