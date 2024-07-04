@@ -9,12 +9,14 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
+import org.springframework.boot.autoconfigure.transaction.PlatformTransactionManagerCustomizer;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.env.ConfigurableEnvironment;
 
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -150,5 +152,72 @@ class ConfigValidatorTest {
         URL resource = this.getClass().getClassLoader().getResource(configFile);
         String content = IOUtils.toString(resource, StandardCharsets.UTF_8);
         return new ObjectMapper().readValue(content, DynamicJdbcConfig.class);
+    }
+
+    @Nested
+    class AbstractConfigurationConfigValidatorTest {
+
+        @Test
+        void shouldInvokeTemplateMethodValidateConfiguration() throws Exception {
+            DynamicJdbcConfig dynamicJdbcConfig = readConfig("dynamic/jdbc/transaction-test-jdbc-config.json");
+            ValidationErrors validationErrors = new ValidationErrors("test");
+
+            AbstractConfigurationConfigValidator configurationConfigValidator = new ConfigurationConfigValidator();
+
+            configurationConfigValidator.validate(dynamicJdbcConfig, "test", validationErrors);
+            assertThat(validationErrors.toString())
+                    .contains("doValidate")
+                    .contains("validateName")
+                    .contains("validateConfigurations")
+                    .contains("validateProperties")
+                    .contains("can't be found");
+            assertFalse(validationErrors.isValid());
+        }
+
+        @Test
+        void shouldValidateCustomizersAssignableFromTargetClass() throws Exception {
+            DynamicJdbcConfig dynamicJdbcConfig = readConfig("dynamic/jdbc/transaction-test-jdbc-config.json");
+            dynamicJdbcConfig.getTransaction().setCustomizers("io.microsphere.dynamic.jdbc.spring.boot.config.validation.ConfigValidatorTest.ConfigurationConfigValidator");
+            ValidationErrors validationErrors = new ValidationErrors("test");
+
+            AbstractConfigurationConfigValidator configurationConfigValidator = new ConfigurationConfigValidator();
+
+            configurationConfigValidator.validate(dynamicJdbcConfig, "test", validationErrors);
+            assertThat(validationErrors.toString())
+                    .contains("doValidate")
+                    .contains("validateName")
+                    .contains("validateConfigurations")
+                    .contains("validateProperties")
+                    .contains("is not the target type");
+            assertFalse(validationErrors.isValid());
+        }
+
+    }
+
+    private static class ConfigurationConfigValidator extends AbstractConfigurationConfigValidator<DynamicJdbcConfig.Transaction> {
+
+
+        @Override
+        protected void doValidate(DynamicJdbcConfig dynamicJdbcConfig, DynamicJdbcConfig.Transaction configuration, ValidationErrors errors) {
+
+            errors.addError("doValidate");
+            validateComponentType(configuration.getCustomizers(), "customizers", PlatformTransactionManagerCustomizer.class, errors);
+        }
+
+        @Override
+        protected void validateName(DynamicJdbcConfig dynamicJdbcConfig, String name, ValidationErrors errors) {
+            errors.addError("validateName");
+        }
+
+        @Override
+        protected void validateConfigurations(DynamicJdbcConfig dynamicJdbcConfig, String configurations, ValidationErrors errors) {
+            super.validateConfigurations(dynamicJdbcConfig, configurations, errors);
+            errors.addError("validateConfigurations");
+        }
+
+        @Override
+        protected void validateProperties(DynamicJdbcConfig dynamicJdbcConfig, Map<String, Object> properties, ValidationErrors errors) {
+            errors.addError("validateProperties");
+        }
     }
 }
