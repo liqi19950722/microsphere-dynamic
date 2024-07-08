@@ -86,9 +86,12 @@ class DynamicJdbcContextProcessorTest {
 
             dynamicJdbcContextProcessor.process(dynamicJdbcConfig, dynamicJdbcConfigPropertyName, context);
 
+            BeanDefinition dynamicJdbcConfigBean = context.getBeanFactory().getBeanDefinition(generateDynamicJdbcConfigBeanName(dynamicJdbcConfig, dynamicJdbcConfigPropertyName));
+            assertNotNull(dynamicJdbcConfigBean);
 
-            BeanDefinition dynamicJdbcDynamicDataSource = context.getBeanFactory().getBeanDefinition(generateDynamicJdbcConfigBeanName(dynamicJdbcConfig, dynamicJdbcConfigPropertyName));
-            assertNotNull(dynamicJdbcDynamicDataSource);
+            BeanDefinition mybatisMapperScanConfiguration = context.getBeanFactory().getBeanDefinition("mybatisMapperScanConfiguration");
+            assertNotNull(mybatisMapperScanConfiguration);
+
         }
     }
 

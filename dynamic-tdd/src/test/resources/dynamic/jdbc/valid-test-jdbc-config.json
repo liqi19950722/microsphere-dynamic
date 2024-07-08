@@ -11,5 +11,12 @@
       "username": "root",
       "password": "123456"
     }
-  ]
+  ],
+  "mybatis": {
+    "base-packages": "io.microsphere.dynamic.jdbc.spring.boot.shardingsphere.examples.mybatis.repository",
+    "properties": {
+      "checkConfigLocation": true,
+      "configLocation": "classpath:/META-INF/mybatis/mybatis-config.xml"
+    }
+  }
 }
