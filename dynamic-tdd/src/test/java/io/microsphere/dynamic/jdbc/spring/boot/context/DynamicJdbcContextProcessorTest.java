@@ -17,6 +17,7 @@ import java.nio.charset.StandardCharsets;
 
 import static io.microsphere.dynamic.jdbc.spring.boot.util.DynamicJdbcConfigUtils.generateDynamicJdbcConfigBeanName;
 import static io.microsphere.dynamic.jdbc.spring.boot.util.DynamicJdbcConfigUtils.generateSynthesizedPropertySourceName;
+import static io.microsphere.spring.boot.constants.SpringBootPropertyConstants.SPRING_AUTO_CONFIGURE_EXCLUDE_PROPERTY_NAME;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -76,10 +77,23 @@ class DynamicJdbcContextProcessorTest {
             Assertions.assertTrue(environment.getPropertySources()
                     .contains(generateSynthesizedPropertySourceName(dynamicJdbcConfigPropertyName)));
         }
+
+        @Test
+        void shouldAddExclusionAutoConfigurationPropertySourceWhenContextIsDynamicJdbcChildContext() {
+            ConfigurableApplicationContext context = new GenericApplicationContext();
+
+            DynamicJdbcChildContext childContext = new DynamicJdbcChildContext(dynamicJdbcConfig, "test", context);
+
+            dynamicJdbcContextProcessor.process(dynamicJdbcConfig, dynamicJdbcConfigPropertyName, childContext);
+
+            ConfigurableEnvironment environment = childContext.getEnvironment();
+            Assertions.assertTrue(environment.getPropertySources()
+                    .contains(generateSynthesizedPropertySourceName(SPRING_AUTO_CONFIGURE_EXCLUDE_PROPERTY_NAME)));
+        }
     }
 
     @Nested
-    class RegisterDynamicJdbcConfigBeanDefinitions {
+    class RegisterDynamicJdbcConfigBeanDefinitionsTest {
         @Test
         void shouldRemoveDataSourceConfigs() {
             ConfigurableApplicationContext context = new GenericApplicationContext();
